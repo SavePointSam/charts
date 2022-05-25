@@ -235,7 +235,6 @@ If additional containers are needed in the same pod as unbound (such as
 additional metrics or logging exporters), they can be defined using the
 `sidecars` parameter. If these sidecars export extra ports, extra port
 definitions can be added using the `service.extraPorts` parameter.
-[Learn more about configuring and using sidecar containers](https://docs.bitnami.com/kubernetes/apps/unbound/administration/configure-use-sidecars/).
 
 ### Pod affinity
 

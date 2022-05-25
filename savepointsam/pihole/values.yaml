@@ -1,0 +1,623 @@
+## @section Global parameters
+
+## Global Docker image parameters
+## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+## Current available global Docker image parameters: imageRegistry, imagePullSecrets and storageClass
+## @param global.imageRegistry Global Docker image registry
+## @param global.imagePullSecrets Global Docker registry secret names as an array
+## @param global.storageClass Global StorageClass for Persistent Volume(s)
+##
+global:
+  imageRegistry: ""
+  ## E.g.
+  ## imagePullSecrets:
+  ##   - myRegistryKeySecretName
+  ##
+  imagePullSecrets: []
+  storageClass: ""
+
+## @section Common parameters
+
+## @param kubeVersion Override Kubernetes version
+##
+kubeVersion: ""
+## @param nameOverride String to partially override common.names.name
+##
+nameOverride: ""
+## @param fullnameOverride String to fully override common.names.fullname
+##
+fullnameOverride: ""
+## @param namespaceOverride String to fully override common.names.namespace
+##
+namespaceOverride: ""
+## @param commonLabels Labels to add to all deployed objects
+##
+commonLabels: {}
+## @param commonAnnotations Annotations to add to all deployed objects
+##
+commonAnnotations: {}
+## @param clusterDomain Kubernetes cluster domain name
+##
+clusterDomain: cluster.local
+## @param extraDeploy Array of extra objects to deploy with the release
+##
+extraDeploy: []
+
+## Enable diagnostic mode in the deployment
+##
+diagnosticMode:
+  ## @param diagnosticMode.enabled Enable diagnostic mode (all probes will be disabled and the command will be overridden)
+  ##
+  enabled: false
+  ## @param diagnosticMode.command Command to override all containers in the deployment
+  ##
+  command:
+    - sleep
+  ## @param diagnosticMode.args Args to override all containers in the deployment
+  ##
+  args:
+    - infinity
+
+## @section Pi-hole parameters
+
+## Pi-hole: a DNS sinkhole that protects your devices from unwanted content, without installing any client-side software
+## ref: https://github.com/pi-hole/pi-hole
+## ref: https://github.com/pi-hole/docker-pi-hole
+##
+pihole:
+  ## Pi-hole configuration
+  ## ref: https://docs.pi-hole.net/
+  ## ref: https://github.com/pi-hole/docker-pi-hole#environment-variables
+  ## @param pihole.timezone Timezone for log rotation calculation
+  ## @param pihole.upstream List of upstream DNS servers
+  ## @param pihole.dnssec.enabled Enable DNSSEC
+  ## @param pihole.privateRangeForwarding.enabled Enable forwarding of reverse lookup for private ranges
+  ## @param pihole.requireFqdn Only forward Full Qualified Domain Names
+  ## @param pihole.virtualHost Hostname/IP for admin web UI access in addition to default "pi.hole/admin"
+  ## @param pihole.ipv6Support Retain/Remove IPv6 configuration
+  ## @param pihole.temperatureUnit Preferred temperature unit ("c", "f", or "k")
+  ##
+  timezone: "America/Los_Angeles"
+  ## Upstream DNS server(s) for Pi-hole to forward queries to.
+  ## Will overwrite changes in GUI on restart.
+  ## Set to empty list `upstream: []` to enable GUI management of upstream servers.
+  ## Supports non-standard ports with #[port number].
+  ## e.g:
+  ## upstream:
+  ##   - "127.0.0.1#5053"
+  ##   - "8.8.8.8"
+  ##   - "8.8.4.4"
+  ##
+  upstream:
+    - "8.8.8.8"
+    - "8.8.4.4"
+  dnssec:
+    enabled: false
+  privateRangeForwarding:
+    enabled: false
+  requireFqdn: true
+  virtualHost: ""
+  ipv6Support: true
+  temperatureUnit: "f"
+  ## Enables viewing local hostnames instead of IP addresses in Pi-hole web UI
+  ## For when your DHCP server is not already an upstream
+  ## ref: https://docs.pi-hole.net/routers/fritzbox/#hostnames-instead-of-ip-addresses-in-pi-holes-web-interface-conditional-forwarding
+  ## @param pihole.reverseServer.enabled Enable rev-server
+  ## @param pihole.reverseServer.domain Domain of local network router
+  ## @param pihole.reverseServer.target IP address of local network router
+  ## @param pihole.reverseServer.cidr Reverse DNS zone
+  ##
+  reverseServer:
+    enabled: false
+    domain: ""
+    target: ""
+    cidr: ""
+  ### DHCP server configuration
+  ### TODO: support DHCP
+  ### @param pihole.dhcp.enabled Enable Pi-hole as a DHCP server
+  ### @param pihole.dhcp.ipv6Support Enable IPv6 support in DHCP server
+  ### @param pihole.dhcp.rapidCommit Enable DHCPv4 rapid commit (fast address assignment)
+  ### @param pihole.dhcp.rangeStart Start of IP address range for DHCP to hand out
+  ### @param pihole.dhcp.rangeEnd End of IP address range for DHCP to hand out
+  ### @param pihole.dhcp.routerIp Router IP address sent by DHCP server
+  ### @param pihole.dhcp.leaseTime DHCP lease time in hours
+  ### @param pihole.dhcp.domain Domain name sent by DHCP server
+  ###
+  ## dhcp:
+  ##   enabled: false
+  ##   ipv6Support: false
+  ##   rapidCommit: false
+  ##   rangeStart: ""
+  ##   rangeEnd: ""
+  ##   routerIp: ""
+  ##   leaseTime: 24
+  ##   domain: "lan"
+  ## Pi-hole web UI configuration
+  ## @param pihole.webui.admin.email Default admin email for web UI
+  ## @param pihole.webui.admin.password Default admin password for web UI
+  ## @param pihole.webui.boxedLayout Enable boxed layout in web UI
+  ## @param pihole.webui.queryLogging Enable query logging
+  ## @param pihole.webui.theme Set web UI theme ("default-dark", "default-darker", "default-light", "default-auto", "lcars")
+  ##
+  webui:
+    admin:
+      email: ""
+      password: ""
+    boxedLayout: true
+    queryLogging: true
+    theme: "default-auto"
+
+  ## @section Pi-hole advanced parameters
+
+  ## Pi-hole advanced configuration
+  ## ref: https://github.com/pi-hole/docker-pi-hole#advanced-variables
+  ## @param pihole.advanced.webPort This will break the 'webpage blocked' functionality of Pi-hole however it may help advanced setups. This guide explains how to restore webpage blocked functionality using a linux router DNAT rule: https://discourse.pi-hole.net/t/alternative-synology-installation-method/5454?u=diginc
+  ## @param pihole.advanced.skipGravityOnBoot Use this option to skip updating the Gravity Database when booting up the container
+  ## @param pihole.advanced.corsHosts List of domains/subdomains on which CORS is allowed. Wildcards are not supported
+  ## @param pihole.advanced.customCacheSize Set the cache size for dnsmasq. When pihole.dnssec.enabled is "true", then this setting is ignored
+  ## @param pihole.advanced.ftlCmd Customize the options with which pihole-ftl starts
+  ## @param pihole.advanced.ftlConf Customize pihole-FTL.conf with settings described here: https://docs.pi-hole.net/ftldns/configfile/
+  ##
+  advanced:
+    webPort: ""
+    skipGravityOnBoot: false
+    corsHosts: []
+    customCacheSize: 10000
+    ## Customize ftl run command
+    ## ref: https://github.com/pi-hole/docker-pi-hole/blob/master/s6/debian-root/etc/services.d/pihole-FTL/run
+    ## ref: https://github.com/pi-hole/FTL/blob/master/src/dnsmasq/option.c#L195-L372
+    ## e.g:
+    ##   ftlCmd: "no-daemon -- --dns-forward-max 300"
+    ##
+    ftlCmd: "no-daemon"
+    ## Customize pihole-FTL.conf with settings described in the FTLDNS Configuration page.
+    ## ref: https://docs.pi-hole.net/ftldns/configfile/
+    ## e.g:
+    ##  ftlConf:
+    ##    BLOCK_ICLOUD_PR: false
+    ##
+    ftlConf: {}
+
+  ## @section Pi-hole experimental parameters
+
+  ## Pi-hole experimental configuration
+  ## ref: https://github.com/pi-hole/docker-pi-hole#experimental-variables
+  ## @param pihole.experimental.dnsmasqUser Allows changing the user that FTLDNS runs as
+  ## @param pihole.experimental.piholeUid Overrides image's default pihole user id to match a host user id
+  ## @param pihole.experimental.piholeGid Overrides image's default pihole group id to match a host group id
+  ## @param pihole.experimental.webUid Overrides image's default www-data user id to match a host user id
+  ## @param pihole.experimental.webGid Overrides image's default www-data group id to match a host group id
+  ## @param pihole.experimental.weblogsStdout "true" logs to defined files, "false" redirect access and error logs to stdout
+  ##
+  experimental:
+    dnsmasqUser: ""
+    piholeUid: ""
+    piholeGid: ""
+    webUid: ""
+    webGid: ""
+    weblogsStdout: false
+
+  ## @section Pi-hole deployment parameters
+
+  ## Pi-hole image
+  ## ref: https://hub.docker.com/r/pihole/pihole/tags/
+  ## @param pihole.image.registry Pi-hole image registry
+  ## @param pihole.image.repository Pi-hole image repository
+  ## @param pihole.image.tag Pi-hole image tag (immutable tags are recommended)
+  ## @param pihole.image.pullPolicy Pi-hole image pull policy
+  ## @param pihole.image.pullSecrets Pi-hole image pull secrets
+  ## @param pihole.image.debug Enable Pi-hole image debug mode
+  ##
+  image:
+    registry: docker.io
+    repository: pihole/pihole
+    tag: "2022.05"
+    ## Specify a imagePullPolicy
+    ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+    ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+    ##
+    pullPolicy: IfNotPresent
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ## e.g:
+    ## pullSecrets:
+    ##   - myRegistryKeySecretName
+    ##
+    pullSecrets: []
+    ## Enable debug mode
+    ##
+    debug: false
+  ## @param pihole.replicaCount Number of Pi-hole replicas to deploy
+  ##
+  replicaCount: 1
+  ## Pi-hole container ports
+  ## ref: https://docs.pi-hole.net/main/prerequisites/#ports
+  ## @param pihole.containerPorts.dns Pi-hole DNS container port
+  ## @param pihole.containerPorts.http Pi-hole HTTP container port
+  ## @param pihole.containerPorts.dhcp Pi-hole DHCP container port
+  ## @param pihole.containerPorts.dhcpv6 Pi-hole DHCPv6 container port
+  ##
+  containerPorts:
+    dns: 53
+    http: 80
+    dhcp: 67
+    dhcpv6: 547
+  ## Configure extra options for Pi-hole containers' liveness and readiness probes
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
+  ## @param pihole.livenessProbe.enabled Enable livenessProbe on Pi-hole containers
+  ## @param pihole.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+  ## @param pihole.livenessProbe.periodSeconds Period seconds for livenessProbe
+  ## @param pihole.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+  ## @param pihole.livenessProbe.failureThreshold Failure threshold for livenessProbe
+  ## @param pihole.livenessProbe.successThreshold Success threshold for livenessProbe
+  ##
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 10
+    successThreshold: 1
+  ## @param pihole.readinessProbe.enabled Enable readinessProbe on Pi-hole containers
+  ## @param pihole.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+  ## @param pihole.readinessProbe.periodSeconds Period seconds for readinessProbe
+  ## @param pihole.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+  ## @param pihole.readinessProbe.failureThreshold Failure threshold for readinessProbe
+  ## @param pihole.readinessProbe.successThreshold Success threshold for readinessProbe
+  ##
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  ## @param pihole.startupProbe.enabled Enable startupProbe on Pi-hole containers
+  ## @param pihole.startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
+  ## @param pihole.startupProbe.periodSeconds Period seconds for startupProbe
+  ## @param pihole.startupProbe.timeoutSeconds Timeout seconds for startupProbe
+  ## @param pihole.startupProbe.failureThreshold Failure threshold for startupProbe
+  ## @param pihole.startupProbe.successThreshold Success threshold for startupProbe
+  ##
+  startupProbe:
+    enabled: false
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 20
+    successThreshold: 1
+  ## @param pihole.customLivenessProbe Custom livenessProbe that overrides the default one
+  ##
+  customLivenessProbe: {}
+  ## @param pihole.customReadinessProbe Custom readinessProbe that overrides the default one
+  ##
+  customReadinessProbe: {}
+  ## @param pihole.customStartupProbe Custom startupProbe that overrides the default one
+  ##
+  customStartupProbe: {}
+  ## Pi-hole resource requests and limits
+  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ## @param pihole.resources.limits.memory RAM limit for Pi-hole Pod
+  ## @param pihole.resources.limits.cpu CPU limit for Pi-hole Pod
+  ## @param pihole.resources.requests.memory Request RAM amount for Pi-hole Pod
+  ## @param pihole.resources.requests.cpu The Requested CPU amount for Pi-hole Pod
+  ##
+  resources:
+    limits:
+      memory: 512Mi
+      cpu: 250m
+    requests:
+      memory: 256Mi
+      cpu: 100m
+  ## Configure Pods Security Context
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+  ## @param pihole.podSecurityContext.enabled Enabled Pi-hole pods' Security Context
+  ## @param pihole.podSecurityContext.fsGroup Set Pi-hole pod's Security Context fsGroup
+  ##
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  ## Configure Container Security Context
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+  ## @param pihole.containerSecurityContext.enabled Enabled Pi-hole containers' Security Context
+  ## @param pihole.containerSecurityContext.runAsUser Set Pi-hole containers' Security Context runAsUser
+  ## @param pihole.containerSecurityContext.runAsNonRoot Set Pi-hole containers' Security Context runAsNonRoot
+  ## @param pihole.containerSecurityContext.readOnlyRootFilesystem Set Pi-hole containers' Security Context runAsNonRoot
+  ##
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: false
+
+  ## @param pihole.existingConfigmap The name of an existing ConfigMap with your custom configuration for pi-hole
+  ##
+  existingConfigmap:
+  ## @param pihole.command Override default container command (useful when using custom images)
+  ##
+  command: []
+  ## @param pihole.args Override default container args (useful when using custom images)
+  ##
+  args: []
+  ## @param pihole.hostAliases Pi-hole pods host aliases
+  ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
+  ##
+  hostAliases: []
+  ## @param pihole.podLabels Extra labels for Pi-hole pods
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+  ##
+  podLabels: {}
+  ## @param pihole.podAnnotations Annotations for Pi-hole pods
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+  ##
+  podAnnotations: {}
+  ## @param pihole.podAffinityPreset Pod affinity preset. Ignored if `pihole.affinity` is set. Allowed values: `soft` or `hard`
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  ##
+  podAffinityPreset: ""
+  ## @param pihole.podAntiAffinityPreset Pod anti-affinity preset. Ignored if `pihole.affinity` is set. Allowed values: `soft` or `hard`
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  ##
+  podAntiAffinityPreset: soft
+  ## Pod Disruption Budget configuration
+  ## ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb
+  ## @param pihole.pdb.create Enable/disable a Pod Disruption Budget creation
+  ## @param pihole.pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
+  ## @param pihole.pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable
+  ##
+  pdb:
+    create: false
+    minAvailable: 1
+    maxUnavailable: ""
+  ## Autoscaling configuration
+  ## ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+  ## @param pihole.autoscaling.enabled Enable autoscaling for pihole
+  ## @param pihole.autoscaling.minReplicas Minimum number of pihole replicas
+  ## @param pihole.autoscaling.maxReplicas Maximum number of pihole replicas
+  ## @param pihole.autoscaling.targetCPU Target CPU utilization percentage
+  ## @param pihole.autoscaling.targetMemory Target Memory utilization percentage
+  ##
+  autoscaling:
+    enabled: false
+    minReplicas: ""
+    maxReplicas: ""
+    targetCPU: ""
+    targetMemory: ""
+  ## Node pihole.affinity preset
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+  ##
+  nodeAffinityPreset:
+    ## @param pihole.nodeAffinityPreset.type Node affinity preset type. Ignored if `pihole.affinity` is set. Allowed values: `soft` or `hard`
+    ##
+    type: ""
+    ## @param pihole.nodeAffinityPreset.key Node label key to match. Ignored if `pihole.affinity` is set
+    ##
+    key: ""
+    ## @param pihole.nodeAffinityPreset.values Node label values to match. Ignored if `pihole.affinity` is set
+    ## E.g.
+    ## values:
+    ##   - e2e-az1
+    ##   - e2e-az2
+    ##
+    values: []
+  ## @param pihole.affinity Affinity for Pi-hole pods assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ## NOTE: `pihole.podAffinityPreset`, `pihole.podAntiAffinityPreset`, and `pihole.nodeAffinityPreset` will be ignored when it's set
+  ##
+  affinity: {}
+  ## @param pihole.nodeSelector Node labels for Pi-hole pods assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  ##
+  nodeSelector: {}
+  ## @param pihole.tolerations Tolerations for Pi-hole pods assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+  ## @param pihole.updateStrategy.type Pi-hole statefulset strategy type
+  ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
+  ##
+  updateStrategy:
+    ## StrategyType
+    ## Can be set to RollingUpdate or OnDelete
+    ##
+    type: RollingUpdate
+
+  ## ONLY FOR STATEFULSETS
+  ## @param pihole.podManagementPolicy Statefulset Pod management policy, it needs to be Parallel to be able to complete the cluster join
+  ## Ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-management-policies
+  ##
+  podManagementPolicy: OrderedReady
+
+  ## @param pihole.priorityClassName Pi-hole pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param pihole.topologySpreadConstraints Topology Spread Constraints for pod assignment spread across your cluster among failure-domains. Evaluated as a template
+  ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
+  ##
+  topologySpreadConstraints: {}
+  ## @param pihole.schedulerName Name of the k8s scheduler (other than default) for Pi-hole pods
+  ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+  ##
+  schedulerName: ""
+  ## @param pihole.terminationGracePeriodSeconds Seconds Redmine pod needs to terminate gracefully
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods
+  ##
+  terminationGracePeriodSeconds: ""
+  ## @param pihole.lifecycleHooks for the Pi-hole container(s) to automate configuration before or after startup
+  ##
+  lifecycleHooks: {}
+  ## @param pihole.extraEnvVars Array with extra environment variables to add to Pi-hole nodes
+  ## e.g:
+  ## extraEnvVars:
+  ##   - name: FOO
+  ##     value: "bar"
+  ##
+  extraEnvVars: []
+  ## @param pihole.extraEnvVarsCM Name of existing ConfigMap containing extra env vars for Pi-hole nodes
+  ##
+  extraEnvVarsCM: ""
+  ## @param pihole.extraEnvVarsSecret Name of existing Secret containing extra env vars for Pi-hole nodes
+  ##
+  extraEnvVarsSecret: ""
+  ## @param pihole.extraVolumes Optionally specify extra list of additional volumes for then Pi-hole pod(s)
+  ##
+  extraVolumes: []
+  ## @param pihole.extraVolumeMounts Optionally specify extra list of additional volumeMounts for then Pi-hole container(s)
+  ##
+  extraVolumeMounts: []
+  ## @param pihole.sidecars Add additional sidecar containers to then Pi-hole pod(s)
+  ## e.g:
+  ## sidecars:
+  ##   - name: your-image-name
+  ##     image: your-image
+  ##     imagePullPolicy: Always
+  ##     ports:
+  ##       - name: portname
+  ##         containerPort: 1234
+  ##
+  sidecars: {}
+  ## @param pihole.initContainers Add additional init containers to then Pi-hole pod(s)
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+  ## e.g:
+  ## initContainers:
+  ##  - name: your-image-name
+  ##    image: your-image
+  ##    imagePullPolicy: Always
+  ##    command: ['sh', '-c', 'echo "hello world"']
+  ##
+  initContainers: {}
+
+## @section Service parameters
+
+## Pi-holeservice parameters
+##
+service:
+  ## @param service.type Pi-hole service type
+  ##
+  type: ClusterIP
+  ## @param service.ports.dns Pi-hole service DNS port
+  ## @param service.ports.http Pi-hole service HTTP port
+  ### @param service.ports.dhcp Pi-hole service DHCP port
+  ### @param service.ports.dhcpv6 Pi-hole service DHCPv6 port
+  ##
+  ports:
+    dns: 53
+    http: 80
+    ## TODO: support DHCP
+    # dhcp: 67
+    # dhcpv6: 547
+  ## Node ports to expose
+  ## @param service.nodePorts.dns Node port for DNS
+  ## @param service.nodePorts.http Node port for HTTP
+  ### @param service.nodePorts.dhcp Node port for DHCP
+  ### @param service.nodePorts.dhcpv6 Node port for DHCPv6
+  ## NOTE: choose port between <30000-32767>
+  ##
+  nodePorts:
+    dns: ""
+    http: ""
+    ## TODO: support DHCP
+    # dhcp: ""
+    # dhcpv6: ""
+  ## @param service.clusterIP Pi-hole service Cluster IP
+  clusterIP: ""
+  ## @param service.loadBalancerIP Pi-hole service Load Balancer IP
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-loadbalancer
+  ##
+  loadBalancerIP: ""
+  ## @param service.loadBalancerSourceRanges Pi-hole service Load Balancer sources
+  ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
+  ## e.g:
+  ## loadBalancerSourceRanges:
+  ##   - 10.10.10.0/24
+  ##
+  loadBalancerSourceRanges: []
+  ## @param service.externalTrafficPolicy Pi-hole service external traffic policy
+  ## ref http://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
+  ##
+  externalTrafficPolicy: Cluster
+  ## @param service.annotations Additional custom annotations for Pi-hole service
+  ##
+  annotations: {}
+  ## @param service.extraPorts Extra ports to expose in Pi-hole service (normally used with the `sidecars` value)
+  ##
+  extraPorts: []
+  ## @param service.sessionAffinity Control where client requests go, to the same pod or round-robin
+  ## Values: ClientIP or None
+  ## ref: https://kubernetes.io/docs/user-guide/services/
+  ##
+  sessionAffinity: None
+  ## @param service.sessionAffinityConfig Additional settings for the sessionAffinity
+  ## sessionAffinityConfig:
+  ##   clientIP:
+  ##     timeoutSeconds: 300
+  ##
+  sessionAffinityConfig: {}
+
+## @section Persistence parameters
+
+## Enable persistence using Persistent Volume Claims
+## ref: https://kubernetes.io/docs/user-guide/persistent-volumes/
+##
+persistence:
+  ## @param persistence.enabled Enable persistence using Persistent Volume Claims
+  ##
+  enabled: true
+  ## @param persistence.mountPath Path to mount the volume at.
+  ##
+  mountPath: /etc/pihole
+  ## @param persistence.subPath The subdirectory of the volume to mount to, useful in dev environments and one PV for multiple services
+  ##
+  subPath: ""
+  ## @param persistence.storageClass Storage class of backing PVC
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  storageClass: ""
+  ## @param persistence.annotations Persistent Volume Claim annotations
+  ##
+  annotations: {}
+  ## @param persistence.accessModes Persistent Volume Access Modes
+  ##
+  accessModes:
+    - ReadWriteOnce
+  ## @param persistence.size Size of data volume
+  ##
+  size: 4Gi
+  ## @param persistence.existingClaim The name of an existing PVC to use for persistence
+  ##
+  existingClaim: ""
+  ## @param persistence.selector Selector to match an existing Persistent Volume for WordPress data PVC
+  ## If set, the PVC can't have a PV dynamically provisioned for it
+  ## E.g.
+  ## selector:
+  ##   matchLabels:
+  ##     app: my-app
+  ##
+  selector: {}
+  ## @param persistence.dataSource Custom PVC data source
+  ##
+  dataSource: {}
+
+## @section Other parameters
+
+## ServiceAccount configuration
+##
+serviceAccount:
+  ## @param serviceAccount.create Specifies whether a ServiceAccount should be created
+  ##
+  create: true
+  ## @param serviceAccount.name The name of the ServiceAccount to use.
+  ## If not set and create is true, a name is generated using the common.names.fullname template
+  ##
+  name: ""
+  ## @param serviceAccount.annotations Additional Service Account annotations (evaluated as a template)
+  ##
+  annotations: {}
+  ## @param serviceAccount.automountServiceAccountToken Automount service account token for the server service account
+  ##
+  automountServiceAccountToken: true
