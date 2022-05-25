@@ -1,62 +1,31 @@
 {{/*
-Expand the name of the chart.
+Return the proper unbound image name
 */}}
-{{- define "unbound.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
-{{- end }}
+{{- define "unbound.image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.unbound.image "global" .Values.global) }}
+{{- end -}}
 
 {{/*
-Create a default fully qualified app name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-If release name contains chart name it will be used as a full name.
+Return the proper Docker Image Registry Secret Names
 */}}
-{{- define "unbound.fullname" -}}
-{{- if .Values.fullnameOverride }}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-{{- end }}
-{{- end }}
-
-{{/*
-Create chart name and version as used by the chart label.
-*/}}
-{{- define "unbound.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-Common labels
-*/}}
-{{- define "unbound.labels" -}}
-helm.sh/chart: {{ include "unbound.chart" . }}
-{{ include "unbound.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end }}
-
-{{/*
-Selector labels
-*/}}
-{{- define "unbound.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "unbound.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }}
+{{- define "unbound.imagePullSecrets" -}}
+{{- include "common.images.pullSecrets" (dict "images" (list .Values.unbound.image) "global" .Values.global) -}}
+{{- end -}}
 
 {{/*
 Create the name of the service account to use
 */}}
 {{- define "unbound.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "unbound.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}
+{{- if .Values.serviceAccount.create -}}
+    {{ default (include "common.names.fullname" .) .Values.serviceAccount.name }}
+{{- else -}}
+    {{ default "default" .Values.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return unbound configuration ConfigMap name
+*/}}
+{{- define "unbound.names.configmap" -}}
+{{ template "common.names.fullname" . }}-config
+{{- end -}}
