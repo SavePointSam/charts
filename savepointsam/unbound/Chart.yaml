@@ -1,0 +1,25 @@
+apiVersion: v2
+name: unbound
+version: 1.0.0
+description: A Helm chart to deploy unbound on Kubernetes
+type: application
+keywords:
+  - unbound
+  - dns
+  - pi
+  - pihole
+  - raspberrypi
+home: https://github.com/NLnetLabs/unbound
+sources:
+  - https://github.com/SavePointSam/charts/savepointsam/unbound
+  - https://github.com/NLnetLabs/unbound
+  - https://github.com/SavePointSam/unbound-docker
+dependencies:
+  - name: common
+    version: 1.x.x
+    repository: https://charts.bitnami.com/bitnami
+maintainers:
+  - name: Sam Horton
+    email: savepointsam@gmail.com
+    url: https://github.com/SavePointSam
+appVersion: "1.15.0"

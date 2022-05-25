@@ -1,0 +1,172 @@
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: unbound
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.unbound.autoscaling.enabled }}
+  replicas: {{ .Values.unbound.replicaCount }}
+  {{- end }}
+  {{- if .Values.unbound.updateStrategy }}
+  strategy: {{- toYaml .Values.unbound.updateStrategy | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" . | nindent 6 }}
+      app.kubernetes.io/component: unbound
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if .Values.unbound.podAnnotations }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.unbound.podAnnotations "context" $) | nindent 8 }}
+        {{- end }}
+      labels: {{- include "common.labels.standard" . | nindent 8 }}
+        app.kubernetes.io/component: unbound
+        {{- if .Values.unbound.podLabels }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.unbound.podLabels "context" $) | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ template "unbound.serviceAccountName" . }}
+      {{- include "unbound.imagePullSecrets" . | nindent 6 }}
+      {{- if .Values.unbound.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.unbound.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.unbound.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.unbound.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.unbound.podAffinityPreset "component" "unbound" "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.unbound.podAntiAffinityPreset "component" "unbound" "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.unbound.nodeAffinityPreset.type "key" .Values.unbound.nodeAffinityPreset.key "values" .Values.unbound.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.unbound.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.unbound.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.unbound.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.unbound.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.unbound.priorityClassName }}
+      priorityClassName: {{ .Values.unbound.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.unbound.schedulerName }}
+      schedulerName: {{ .Values.unbound.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.unbound.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.unbound.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.unbound.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.unbound.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.unbound.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.unbound.terminationGracePeriodSeconds }}
+      {{- end }}
+      initContainers:
+        {{- if .Values.unbound.initContainers }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.unbound.initContainers "context" $) | nindent 8 }}
+        {{- end }}
+      containers:
+        - name: unbound
+          image: {{ template "unbound.image" . }}
+          imagePullPolicy: {{ .Values.unbound.image.pullPolicy }}
+          {{- if .Values.unbound.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.unbound.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.unbound.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.unbound.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.unbound.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.unbound.args "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            {{- if .Values.unbound.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.unbound.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          envFrom:
+            {{- if .Values.unbound.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.unbound.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.unbound.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.unbound.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- if .Values.unbound.resources }}
+          resources: {{- toYaml .Values.unbound.resources | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: dns
+              containerPort: {{ .Values.unbound.containerPorts.dns }}
+              protocol: TCP
+            - name: dns-udp
+              containerPort: {{ .Values.unbound.containerPorts.dns }}
+              protocol: UDP
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.unbound.livenessProbe.enabled }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.unbound.livenessProbe "enabled") "context" $) | nindent 12 }}
+            exec:
+              command:
+                - "drill"
+                - "@127.0.0.1"
+                - "cloudflare.com"
+          {{- else if .Values.unbound.customLivenessProbe }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.unbound.customLivenessProbe "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.unbound.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.unbound.readinessProbe "enabled") "context" $) | nindent 12 }}
+            exec:
+              command:
+                - "drill"
+                - "@127.0.0.1"
+                - "cloudflare.com"
+          {{- else if .Values.unbound.customReadinessProbe }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.unbound.customReadinessProbe "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.unbound.startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.unbound.startupProbe "enabled") "context" $) | nindent 12 }}
+            exec:
+              command:
+                - "drill"
+                - "@127.0.0.1"
+                - "cloudflare.com"
+          {{- else if .Values.unbound.customStartupProbe }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.unbound.customStartupProbe "context" $) | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.unbound.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.unbound.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: /opt/unbound/etc/unbound/unbound.conf
+              subPath: unbound.conf
+            - name: config-volume
+              mountPath: /opt/unbound/etc/unbound/forward-records.conf
+              subPath: forward-records.conf
+            - name: config-volume
+              mountPath: /opt/unbound/etc/unbound/a-records.conf
+              subPath: a-records.conf
+          {{- if .Values.unbound.extraVolumeMounts }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.unbound.extraVolumeMounts "context" $) | nindent 12 }}
+          {{- end }}
+        {{- if .Values.unbound.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.unbound.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ include "unbound.names.configmap" . }}
+        {{- if .Values.unbound.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.unbound.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

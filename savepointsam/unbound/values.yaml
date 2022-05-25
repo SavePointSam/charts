@@ -1,0 +1,486 @@
+## @section Global parameters
+
+## Global Docker image parameters
+## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+## Current available global Docker image parameters: imageRegistry, imagePullSecrets and storageClass
+## @param global.imageRegistry Global Docker image registry
+## @param global.imagePullSecrets Global Docker registry secret names as an array
+## @param global.storageClass Global StorageClass for Persistent Volume(s)
+##
+global:
+  imageRegistry: ""
+  ## E.g.
+  ## imagePullSecrets:
+  ##   - myRegistryKeySecretName
+  ##
+  imagePullSecrets: []
+  storageClass: ""
+
+## @section Common parameters
+
+## @param kubeVersion Override Kubernetes version
+##
+kubeVersion: ""
+## @param nameOverride String to partially override common.names.name
+##
+nameOverride: ""
+## @param fullnameOverride String to fully override common.names.fullname
+##
+fullnameOverride: ""
+## @param namespaceOverride String to fully override common.names.namespace
+##
+namespaceOverride: ""
+## @param commonLabels Labels to add to all deployed objects
+##
+commonLabels: {}
+## @param commonAnnotations Annotations to add to all deployed objects
+##
+commonAnnotations: {}
+## @param clusterDomain Kubernetes cluster domain name
+##
+clusterDomain: cluster.local
+## @param extraDeploy Array of extra objects to deploy with the release
+##
+extraDeploy: []
+
+## Enable diagnostic mode in the deployment
+##
+diagnosticMode:
+  ## @param diagnosticMode.enabled Enable diagnostic mode (all probes will be disabled and the command will be overridden)
+  ##
+  enabled: false
+  ## @param diagnosticMode.command Command to override all containers in the deployment
+  ##
+  command:
+    - sleep
+  ## @param diagnosticMode.args Args to override all containers in the deployment
+  ##
+  args:
+    - infinity
+
+## @section Unbound Parameters
+
+## Unbound:
+## ref: https://github.com/NLnetLabs/unbound
+##
+unbound:
+  ## Unbound configuration
+  ## ref: https://nlnetlabs.nl/documentation/unbound/unbound.conf/
+  ## @param unbound.verbosity Logging severity from 0-5 (0 = no logs)
+  ## @param unbound.numThreads The number of threads to create to serve clients (1 = no threading)
+  ## @param unbound.port The port number, default 53, on which the server responds to queries.
+  ## @param unbound.interface Interface to use to connect to the network.
+  ## @param unbound.accessControlRules List of IP netblocks and control action (e.g: deny, refuse, allow, allow_setrd, allow_snoop, deny_non_local, or refuse_non_local)
+  ## @param unbound.forwardingAddresses List of IP addresses for the server to forward to
+  ##
+  verbosity: 1
+  numThreads: 1
+  port: 53
+  interface: "0.0.0.0@53"
+  accessControlRules:
+    ## healthcheck
+    ##
+    - "127.0.0.1/32 allow"
+    ## loopback
+    ##
+    - "192.168.0.0/16 allow"
+    - "172.16.0.0/12 allow"
+    - "10.0.0.0/8 allow"
+  forwardingAddresses:
+    ## Common forwarding addresses
+    ## ref: https://dnsprivacy.org/wiki/display/DP/DNS+Privacy+Test+Servers
+    ##
+
+    ## Cloudflare
+    ##
+    - "1.1.1.1@853#cloudflare-dns.com"
+    - "1.0.0.1@853#cloudflare-dns.com"
+    # - "2606:4700:4700::1111@853#cloudflare-dns.com"
+    # - "2606:4700:4700::1001@853#cloudflare-dns.com"
+
+    ## CleanBrowsing Security Filter
+    ##
+    # - "185.228.168.9@853#security-filter-dns.cleanbrowsing.org"
+    # - "185.228.169.9@853#security-filter-dns.cleanbrowsing.org"
+    # - "2a0d:2a00:1::2@853#security-filter-dns.cleanbrowsing.org"
+    # - "2a0d:2a00:2::2@853#security-filter-dns.cleanbrowsing.org"
+
+    ## CleanBrowsing Adult Filter
+    ##
+    # - "185.228.168.10@853#adult-filter-dns.cleanbrowsing.org"
+    # - "185.228.169.11@853#adult-filter-dns.cleanbrowsing.org"
+    # - "2a0d:2a00:1::1@853#adult-filter-dns.cleanbrowsing.org"
+    # - "2a0d:2a00:2::1@853#adult-filter-dns.cleanbrowsing.org"
+
+    ## CleanBrowsing Family Filter
+    ##
+    # - "185.228.168.168@853#family-filter-dns.cleanbrowsing.org"
+    # - "185.228.169.168@853#family-filter-dns.cleanbrowsing.org"
+    # - "2a0d:2a00:1::@853#family-filter-dns.cleanbrowsing.org"
+    # - "2a0d:2a00:2::@853#family-filter-dns.cleanbrowsing.org"
+
+    ## Quad9
+    ##
+    # - "9.9.9.9@853#dns.quad9.net"
+    # - "149.112.112.112@853#dns.quad9.net"
+    # - "2620:fe::fe@853#dns.quad9.net"
+    # - "2620:fe::9@853#dns.quad9.net"
+
+    ## getdnsapi.net
+    ##
+    # - "185.49.141.37@853#getdnsapi.net"
+    # - "2a04:b900:0:100::37@853#getdnsapi.net"
+
+    ## Surfnet
+    ##
+    # - "145.100.185.15@853#dnsovertls.sinodun.com"
+    # - "145.100.185.16@853#dnsovertls1.sinodun.com"
+    # - "2001:610:1:40ba:145:100:185:15@853#dnsovertls.sinodun.com"
+    # - "2001:610:1:40ba:145:100:185:16@853#dnsovertls1.sinodun.com"
+  ## Unbound image
+  ## ref: https://hub.docker.com/r/unbound/unbound/tags/
+  ## @param unbound.image.registry Unbound image registry
+  ## @param unbound.image.repository Unbound image repository
+  ## @param unbound.image.tag Unbound image tag (immutable tags are recommended)
+  ## @param unbound.image.pullPolicy Unbound image pull policy
+  ## @param unbound.image.pullSecrets Unbound image pull secrets
+  ## @param unbound.image.debug Enable Unbound image debug mode
+  ##
+  image:
+    registry: docker.io
+    repository: savepointsam/unbound
+    tag: "1.15.0"
+    ## Specify a imagePullPolicy
+    ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+    ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+    ##
+    pullPolicy: IfNotPresent
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ## e.g:
+    ## pullSecrets:
+    ##   - myRegistryKeySecretName
+    ##
+    pullSecrets: []
+    ## Enable debug mode
+    ##
+    debug: false
+  ## @param unbound.replicaCount Number of Unbound replicas to deploy
+  ##
+  replicaCount: 1
+  ## Unbound container ports
+  ## ref:
+  ## @param unbound.containerPorts.dns Unbound DNS container port
+  ##
+  containerPorts:
+    dns: 53
+  ## Configure extra options for Unbound containers' liveness and readiness probes
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
+  ## @param unbound.livenessProbe.enabled Enable livenessProbe on Unbound containers
+  ## @param unbound.livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+  ## @param unbound.livenessProbe.periodSeconds Period seconds for livenessProbe
+  ## @param unbound.livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+  ## @param unbound.livenessProbe.failureThreshold Failure threshold for livenessProbe
+  ## @param unbound.livenessProbe.successThreshold Success threshold for livenessProbe
+  ##
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 10
+    successThreshold: 1
+  ## @param unbound.readinessProbe.enabled Enable readinessProbe on Unbound containers
+  ## @param unbound.readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+  ## @param unbound.readinessProbe.periodSeconds Period seconds for readinessProbe
+  ## @param unbound.readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+  ## @param unbound.readinessProbe.failureThreshold Failure threshold for readinessProbe
+  ## @param unbound.readinessProbe.successThreshold Success threshold for readinessProbe
+  ##
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  ## @param unbound.startupProbe.enabled Enable startupProbe on Unbound containers
+  ## @param unbound.startupProbe.initialDelaySeconds Initial delay seconds for startupProbe
+  ## @param unbound.startupProbe.periodSeconds Period seconds for startupProbe
+  ## @param unbound.startupProbe.timeoutSeconds Timeout seconds for startupProbe
+  ## @param unbound.startupProbe.failureThreshold Failure threshold for startupProbe
+  ## @param unbound.startupProbe.successThreshold Success threshold for startupProbe
+  ##
+  startupProbe:
+    enabled: false
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 20
+    successThreshold: 1
+  ## @param unbound.customLivenessProbe Custom livenessProbe that overrides the default one
+  ##
+  customLivenessProbe: {}
+  ## @param unbound.customReadinessProbe Custom readinessProbe that overrides the default one
+  ##
+  customReadinessProbe: {}
+  ## @param unbound.customStartupProbe Custom startupProbe that overrides the default one
+  ##
+  customStartupProbe: {}
+  ## Unbound resource requests and limits
+  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ## @param unbound.resources.requests.memory The requested memory for the Unbound containers
+  ## @param unbound.resources.requests.cpu The requested CPU for the Unbound containers
+  ##
+  resources:
+    requests:
+      memory: 32Mi
+      cpu: 100m
+  ## Configure Pods Security Context
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+  ## @param unbound.podSecurityContext.enabled Enabled Unbound pods' Security Context
+  ## @param unbound.podSecurityContext.fsGroup Set Unbound pod's Security Context fsGroup
+  ##
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  ## Configure Container Security Context
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
+  ## @param unbound.containerSecurityContext.enabled Enabled Unbound containers' Security Context
+  ## @param unbound.containerSecurityContext.runAsUser Set Unbound containers' Security Context runAsUser
+  ## @param unbound.containerSecurityContext.runAsNonRoot Set Unbound containers' Security Context runAsNonRoot
+  ## @param unbound.containerSecurityContext.readOnlyRootFilesystem Set Unbound containers' Security Context runAsNonRoot
+  ##
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+    readOnlyRootFilesystem: false
+
+  ## @param unbound.existingConfigmap The name of an existing ConfigMap with your custom configuration for unbound
+  ##
+  existingConfigmap:
+  ## @param unbound.command Override default container command (useful when using custom images)
+  ##
+  command: []
+  ## @param unbound.args Override default container args (useful when using custom images)
+  ##
+  args: []
+  ## @param unbound.hostAliases Unbound pods host aliases
+  ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
+  ##
+  hostAliases: []
+  ## @param unbound.podLabels Extra labels for Unbound pods
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+  ##
+  podLabels: {}
+  ## @param unbound.podAnnotations Annotations for Unbound pods
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+  ##
+  podAnnotations: {}
+  ## @param unbound.podAffinityPreset Pod affinity preset. Ignored if `unbound.affinity` is set. Allowed values: `soft` or `hard`
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  ##
+  podAffinityPreset: ""
+  ## @param unbound.podAntiAffinityPreset Pod anti-affinity preset. Ignored if `unbound.affinity` is set. Allowed values: `soft` or `hard`
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+  ##
+  podAntiAffinityPreset: soft
+  ## Pod Disruption Budget configuration
+  ## ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb
+  ## @param unbound.pdb.create Enable/disable a Pod Disruption Budget creation
+  ## @param unbound.pdb.minAvailable Minimum number/percentage of pods that should remain scheduled
+  ## @param unbound.pdb.maxUnavailable Maximum number/percentage of pods that may be made unavailable
+  ##
+  pdb:
+    create: false
+    minAvailable: 1
+    maxUnavailable: ""
+  ## Autoscaling configuration
+  ## ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+  ## @param unbound.autoscaling.enabled Enable autoscaling for unbound
+  ## @param unbound.autoscaling.minReplicas Minimum number of Unbound replicas
+  ## @param unbound.autoscaling.maxReplicas Maximum number of Unbound replicas
+  ## @param unbound.autoscaling.targetCPU Target CPU utilization percentage
+  ## @param unbound.autoscaling.targetMemory Target Memory utilization percentage
+  ##
+  autoscaling:
+    enabled: false
+    minReplicas: ""
+    maxReplicas: ""
+    targetCPU: ""
+    targetMemory: ""
+  ## Node unbound.affinity preset
+  ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
+  ##
+  nodeAffinityPreset:
+    ## @param unbound.nodeAffinityPreset.type Node affinity preset type. Ignored if `unbound.affinity` is set. Allowed values: `soft` or `hard`
+    ##
+    type: ""
+    ## @param unbound.nodeAffinityPreset.key Node label key to match. Ignored if `unbound.affinity` is set
+    ##
+    key: ""
+    ## @param unbound.nodeAffinityPreset.values Node label values to match. Ignored if `unbound.affinity` is set
+    ## E.g.
+    ## values:
+    ##   - e2e-az1
+    ##   - e2e-az2
+    ##
+    values: []
+  ## @param unbound.affinity Affinity for Unbound pods assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+  ## NOTE: `unbound.podAffinityPreset`, `unbound.podAntiAffinityPreset`, and `unbound.nodeAffinityPreset` will be ignored when it's set
+  ##
+  affinity: {}
+  ## @param unbound.nodeSelector Node labels for Unbound pods assignment
+  ## ref: https://kubernetes.io/docs/user-guide/node-selection/
+  ##
+  nodeSelector: {}
+  ## @param unbound.tolerations Tolerations for Unbound pods assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  ##
+  tolerations: []
+  ## @param unbound.updateStrategy.type Unbound statefulset strategy type
+  ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
+  ##
+  updateStrategy:
+    ## StrategyType
+    ## Can be set to RollingUpdate or OnDelete
+    ##
+    type: RollingUpdate
+
+  ## ONLY FOR STATEFULSETS
+  ## @param unbound.podManagementPolicy Statefulset Pod management policy, it needs to be Parallel to be able to complete the cluster join
+  ## Ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-management-policies
+  ##
+  podManagementPolicy: OrderedReady
+
+  ## @param unbound.priorityClassName Unbound pods' priorityClassName
+  ##
+  priorityClassName: ""
+  ## @param unbound.topologySpreadConstraints Topology Spread Constraints for pod assignment spread across your cluster among failure-domains. Evaluated as a template
+  ## Ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-topology-spread-constraints/#spread-constraints-for-pods
+  ##
+  topologySpreadConstraints: {}
+  ## @param unbound.schedulerName Name of the k8s scheduler (other than default) for Unbound pods
+  ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+  ##
+  schedulerName: ""
+  ## @param unbound.terminationGracePeriodSeconds Seconds Redmine pod needs to terminate gracefully
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods
+  ##
+  terminationGracePeriodSeconds: ""
+  ## @param unbound.lifecycleHooks for the Unbound container(s) to automate configuration before or after startup
+  ##
+  lifecycleHooks: {}
+  ## @param unbound.extraEnvVars Array with extra environment variables to add to Unbound nodes
+  ## e.g:
+  ## extraEnvVars:
+  ##   - name: FOO
+  ##     value: "bar"
+  ##
+  extraEnvVars: []
+  ## @param unbound.extraEnvVarsCM Name of existing ConfigMap containing extra env vars for Unbound nodes
+  ##
+  extraEnvVarsCM: ""
+  ## @param unbound.extraEnvVarsSecret Name of existing Secret containing extra env vars for Unbound nodes
+  ##
+  extraEnvVarsSecret: ""
+  ## @param unbound.extraVolumes Optionally specify extra list of additional volumes for the Unbound pod(s)
+  ##
+  extraVolumes: []
+  ## @param unbound.extraVolumeMounts Optionally specify extra list of additional volumeMounts for the Unbound container(s)
+  ##
+  extraVolumeMounts: []
+  ## @param unbound.sidecars Add additional sidecar containers to the Unbound pod(s)
+  ## e.g:
+  ## sidecars:
+  ##   - name: your-image-name
+  ##     image: your-image
+  ##     imagePullPolicy: Always
+  ##     ports:
+  ##       - name: portname
+  ##         containerPort: 1234
+  ##
+  sidecars: {}
+  ## @param unbound.initContainers Add additional init containers to the Unbound pod(s)
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+  ## e.g:
+  ## initContainers:
+  ##  - name: your-image-name
+  ##    image: your-image
+  ##    imagePullPolicy: Always
+  ##    command: ['sh', '-c', 'echo "hello world"']
+  ##
+  initContainers: {}
+
+## @section Service Parameters
+##
+service:
+  ## @param service.type Unbound service type
+  ##
+  type: ClusterIP
+  ## @param service.ports.dns Unbound service DNS port
+  ##
+  ports:
+    dns: 53
+  ## Node ports to expose
+  ## @param service.nodePorts.dns Node port for DNS
+  ## NOTE: choose port between <30000-32767>
+  ##
+  nodePorts:
+    dns: ""
+  ## @param service.clusterIP Unbound service Cluster IP
+  clusterIP: ""
+  ## @param service.loadBalancerIP Unbound service Load Balancer IP
+  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-loadbalancer
+  ##
+  loadBalancerIP: ""
+  ## @param service.loadBalancerSourceRanges Unbound service Load Balancer sources
+  ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
+  ## e.g:
+  ## loadBalancerSourceRanges:
+  ##   - 10.10.10.0/24
+  ##
+  loadBalancerSourceRanges: []
+  ## @param service.externalTrafficPolicy Unbound service external traffic policy
+  ## ref http://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
+  ##
+  externalTrafficPolicy: Cluster
+  ## @param service.annotations Additional custom annotations for Unbound service
+  ##
+  annotations: {}
+  ## @param service.extraPorts Extra ports to expose in Unbound service (normally used with the `sidecars` value)
+  ##
+  extraPorts: []
+  ## @param service.sessionAffinity Control where client requests go, to the same pod or round-robin
+  ## Values: ClientIP or None
+  ## ref: https://kubernetes.io/docs/user-guide/services/
+  ##
+  sessionAffinity: None
+  ## @param service.sessionAffinityConfig Additional settings for the sessionAffinity
+  ## sessionAffinityConfig:
+  ##   clientIP:
+  ##     timeoutSeconds: 300
+  ##
+  sessionAffinityConfig: {}
+
+## @section Other Parameters
+
+## ServiceAccount configuration
+##
+serviceAccount:
+  ## @param serviceAccount.create Specifies whether a ServiceAccount should be created
+  ##
+  create: true
+  ## @param serviceAccount.name The name of the ServiceAccount to use.
+  ## If not set and create is true, a name is generated using the common.names.fullname template
+  ##
+  name: ""
+  ## @param serviceAccount.annotations Additional Service Account annotations (evaluated as a template)
+  ##
+  annotations: {}
+  ## @param serviceAccount.automountServiceAccountToken Automount service account token for the server service account
+  ##
+  automountServiceAccountToken: true
