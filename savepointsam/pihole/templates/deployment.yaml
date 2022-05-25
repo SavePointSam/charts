@@ -12,7 +12,7 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
+  {{- if not .Values.pihole.autoscaling.enabled }}
   replicas: {{ .Values.pihole.replicaCount }}
   {{- end }}
   {{- if .Values.pihole.updateStrategy }}
@@ -163,14 +163,6 @@ spec:
                   name: {{ include "pihole.secrets.webui.password.name" . }}
                   key: webpassword
             {{- /* ADVANCED */}}
-            {{- if .Values.pihole.advanced.dnsmasq.interface }}
-            - name: INTERFACE
-              value: {{ .Values.pihole.advanced.dnsmasq.interface }}
-            {{- end }}
-            {{- if .Values.pihole.advanced.dnsmasq.listening }}
-            - name: DNSMASQ_LISTENING
-              value: {{ .Values.pihole.advanced.dnsmasq.listening }}
-            {{- end }}
             {{- if .Values.pihole.advanced.webPort | quote }}
             - name: WEB_PORT
               value: {{ .Values.pihole.advanced.webPort | quote }}
@@ -293,17 +285,6 @@ spec:
               {{- if .Values.persistence.subPath }}
               subPath: {{ .Values.persistence.subPath }}
               {{- end }}
-            {{- if .Values.pihole.advanced.dnsmasq.manualConfiguration.enabled }}
-            - name: pihole-conf
-              mountPath: /etc/addn-hosts
-              subPath: addn-hosts
-            - name: pihole-conf
-              mountPath: /etc/dnsmasq.d/02-custom.conf
-              subPath: 02-custom.conf
-            - name: pihole-conf
-              mountPath: /etc/dnsmasq.d/05-pihole-custom-cname.conf
-              subPath: 05-pihole-custom-cname.conf
-            {{- end }}
           {{- if .Values.pihole.extraVolumeMounts }}
           {{- include "common.tplvalues.render" (dict "value" .Values.pihole.extraVolumeMounts "context" $) | nindent 12 }}
           {{- end }}
