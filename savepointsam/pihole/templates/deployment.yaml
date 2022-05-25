@@ -1,0 +1,304 @@
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    app.kubernetes.io/component: pihole
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.pihole.autoscaling.enabled }}
+  replicas: {{ .Values.pihole.replicaCount }}
+  {{- end }}
+  {{- if .Values.pihole.updateStrategy }}
+  strategy: {{- toYaml .Values.pihole.updateStrategy | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" . | nindent 6 }}
+      app.kubernetes.io/component: pihole
+  template:
+    metadata:
+      {{- if .Values.pihole.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.pihole.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+      labels: {{- include "common.labels.standard" . | nindent 8 }}
+        app.kubernetes.io/component: pihole
+        {{- if .Values.pihole.podLabels }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.pihole.podLabels "context" $) | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ template "pihole.serviceAccountName" . }}
+      {{- include "pihole.imagePullSecrets" . | nindent 6 }}
+      {{- if .Values.pihole.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.pihole.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.pihole.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.pihole.affinity "context" $) | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAffinity: {{- include "common.affinities.pods" (dict "type" .Values.pihole.podAffinityPreset "component" "pihole" "context" $) | nindent 10 }}
+        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.pihole.podAntiAffinityPreset "component" "pihole" "context" $) | nindent 10 }}
+        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.pihole.nodeAffinityPreset.type "key" .Values.pihole.nodeAffinityPreset.key "values" .Values.pihole.nodeAffinityPreset.values) | nindent 10 }}
+      {{- end }}
+      {{- if .Values.pihole.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.pihole.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.pihole.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.pihole.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.pihole.priorityClassName }}
+      priorityClassName: {{ .Values.pihole.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.pihole.schedulerName }}
+      schedulerName: {{ .Values.pihole.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.pihole.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.pihole.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.pihole.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.pihole.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.pihole.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.pihole.terminationGracePeriodSeconds }}
+      {{- end }}
+      initContainers:
+        {{- if .Values.pihole.initContainers }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.pihole.initContainers "context" $) | nindent 8 }}
+        {{- end }}
+      containers:
+        - name: pihole
+          image: {{ template "pihole.image" . }}
+          imagePullPolicy: {{ .Values.pihole.image.pullPolicy }}
+          {{- if .Values.pihole.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.pihole.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.pihole.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.pihole.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.pihole.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.pihole.args "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            {{- /* GENERAL */}}
+            - name: TZ
+              value: {{ .Values.pihole.timezone | quote }}
+            - name: PIHOLE_DNS_
+              value: {{ join ";" .Values.pihole.upstream | quote }}
+            - name: DNSSEC
+              value: {{ .Values.pihole.dnssec.enabled | quote }}
+            {{- if .Values.pihole.privateRangeForwarding.enabled }}
+            - name: DNS_BOGUS_PRIV
+              value: "false"
+            {{- else }}
+            - name: DNS_BOGUS_PRIV
+              value: "true"
+            {{- end }}
+            - name: DNS_FQDN_REQUIRED
+              value: {{ .Values.pihole.requireFqdn | quote }}
+            - name: VIRTUAL_HOST
+              value: {{ .Values.pihole.virtualHost | quote }}
+            - name: IPv6
+              value: {{ .Values.pihole.ipv6Support | quote }}
+            - name: TEMPERATUREUNIT
+              value: {{ .Values.pihole.temperatureUnit }}
+            {{- /* REVERSE SERVER */}}
+            - name: REV_SERVER
+              value: {{ .Values.pihole.reverseServer.enabled | quote }}
+            {{- if .Values.pihole.reverseServer.enabled }}
+            - name: REV_SERVER_DOMAIN
+              value: {{ .Values.pihole.reverseServer.domain | quote }}
+            - name: REV_SERVER_TARGET
+              value: {{ .Values.pihole.reverseServer.target | quote }}
+            - name: REV_SERVER_CIDR
+              value: {{ .Values.pihole.reverseServer.cidr | quote }}
+            {{- end }}
+            {{- /* DHCP SERVER */}}
+            {{- /* TODO: support DHCP */}}
+            {{- /*
+            - name: DHCP_ACTIVE
+              value: {{ .Values.pihole.dhcp.enabled }}
+            {{- if .Values.pihole.dhcp.enabled }}
+            - name: DHCP_START
+              value: {{ required "A pihole.dhcp.rangeStart value is required when DHCP is enabled!" .Values.pihole.dhcp.rangeStart | quote }}
+            - name: DHCP_END
+              value: {{ required "A pihole.dhcp.rangeEnd value is required when DHCP is enabled!" .Values.pihole.dhcp.rangeEnd | quote }}
+            - name: DHCP_ROUTER
+              value: {{ required "A pihole.dhcp.routerIp value is required when DHCP is enabled!" .Values.pihole.dhcp.routerIp | quote }}
+            - name: DHCP_LEASETIME
+              value: {{ required "A pihole.dhcp.leaseTime value is required when DHCP is enabled!" .Values.pihole.dhcp.leaseTime }}
+            - name: PIHOLE_DOMAIN
+              value: {{ .Values.pihole.dhcp.domain }}
+            - name: DHCP_IPv6
+              value: {{ .Values.pihole.dhcp.ipv6Support }}
+            - name: DHCP_rapid_commit
+              value: {{ .Values.pihole.dhcp.rapidCommit }}
+            {{- end }}
+            */}}
+            {{- /* WEB UI */}}
+            - name: ADMIN_EMAIL
+              value: {{ .Values.pihole.webui.admin.email | quote }}
+            {{- if .Values.pihole.webui.boxedLayout }}
+            - name: WEBUIBOXEDLAYOUT
+              value: boxed
+            {{- else }}
+            - name: WEBUIBOXEDLAYOUT
+              value: traditional
+            {{- end }}
+            - name: QUERY_LOGGING
+              value: {{ .Values.pihole.webui.queryLogging | quote }}
+            - name: WEBTHEME
+              value: {{ .Values.pihole.webui.theme }}
+            - name: WEBPASSWORD_FILE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pihole.secrets.webui.password.name" . }}
+                  key: webpassword
+            {{- /* ADVANCED */}}
+            {{- if .Values.pihole.advanced.webPort | quote }}
+            - name: WEB_PORT
+              value: {{ .Values.pihole.advanced.webPort | quote }}
+            {{- end }}
+            {{- if .Values.pihole.advanced.skipGravityOnBoot }}
+            - name: SKIPGRAVITYONBOOT
+              value: 1
+            {{- end }}
+            {{- if .Values.pihole.advanced.corsHosts }}
+            - name: CORS_HOSTS
+              value: {{ join "," .Values.pihole.advanced.corsHosts | quote }}
+            {{- end }}
+            {{- if .Values.pihole.advanced.customCacheSize }}
+            - name: CUSTOM_CACHE_SIZE
+              value: {{ .Values.pihole.advanced.customCacheSize | quote }}
+            {{- end }}
+            {{- if .Values.pihole.advanced.ftlCmd }}
+            - name: FTL_CMD
+              value: {{ .Values.pihole.advanced.ftlCmd | quote }}
+            {{- end }}
+            {{- range $key, $value := .Values.pihole.advanced.ftlConf }}
+            - name: "FTLCONF_{{ $key }}"
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- /* EXPERIMENTAL */}}
+            {{- if .Values.pihole.experimental.dnsmasqUser }}
+            - name: DNSMASQ_USER
+              value: {{ .Values.pihole.experimental.dnsmasqUser }}
+            {{- end }}
+            {{- if .Values.pihole.experimental.piholeUid }}
+            - name: PIHOLE_UID
+              value: {{ .Values.pihole.experimental.piholeUid | quote }}
+            {{- end }}
+            {{- if .Values.pihole.experimental.piholeGid }}
+            - name: PIHOLE_GID
+              value: {{ .Values.pihole.experimental.piholeGid | quote }}
+            {{- end }}
+            {{- if .Values.pihole.experimental.webUid }}
+            - name: WEB_UID
+              value: {{ .Values.pihole.experimental.webUid | quote }}
+            {{- end }}
+            {{- if .Values.pihole.experimental.webGid }}
+            - name: WEB_GID
+              value: {{ .Values.pihole.experimental.webGid | quote }}
+            {{- end }}
+            {{- if .Values.pihole.experimental.weblogsStdout }}
+            - name: WEBLOGS_STDOUT
+              value: 1
+            {{- end }}
+            {{- /* EXTRA */}}
+            {{- if .Values.pihole.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.pihole.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          envFrom:
+            {{- if .Values.pihole.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.pihole.extraEnvVarsCM "context" $) }}
+            {{- end }}
+            {{- if .Values.pihole.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ include "common.tplvalues.render" (dict "value" .Values.pihole.extraEnvVarsSecret "context" $) }}
+            {{- end }}
+          {{- if .Values.pihole.resources }}
+          resources: {{- toYaml .Values.pihole.resources | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: dns
+              containerPort: {{ .Values.pihole.containerPorts.dns }}
+              protocol: TCP
+            - name: dns-udp
+              containerPort: {{ .Values.pihole.containerPorts.dns }}
+              protocol: UDP
+            - name: http
+              containerPort: {{ .Values.pihole.containerPorts.http }}
+              protocol: TCP
+            {{- /*
+            {{- if .Values.pihole.dhcp.enabled }}
+            - name: dhcp
+              containerPort: {{ .Values.pihole.containerPorts.dhcp }}
+              protocol: UDP
+            {{- if .Values.pihole.dhcp.ipv6Support }}
+            - name: dhcpv6
+              containerPort: {{ .Values.pihole.containerPorts.dhcpv6 }}
+              protocol: UDP
+            {{- end }}
+            {{- end }}
+            */}}
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.pihole.livenessProbe.enabled }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.pihole.livenessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /admin.index.php
+              port: http
+          {{- else if .Values.pihole.customLivenessProbe }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.pihole.customLivenessProbe "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.pihole.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.pihole.readinessProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /admin.index.php
+              port: http
+          {{- else if .Values.pihole.customReadinessProbe }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.pihole.customReadinessProbe "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.pihole.startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.pihole.startupProbe "enabled") "context" $) | nindent 12 }}
+            httpGet:
+              path: /admin.index.php
+              port: http
+          {{- else if .Values.pihole.customStartupProbe }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.pihole.customStartupProbe "context" $) | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.pihole.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.pihole.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: pihole
+              mountPath: {{ .Values.persistence.mountPath }}
+              {{- if .Values.persistence.subPath }}
+              subPath: {{ .Values.persistence.subPath }}
+              {{- end }}
+          {{- if .Values.pihole.extraVolumeMounts }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.pihole.extraVolumeMounts "context" $) | nindent 12 }}
+          {{- end }}
+        {{- if .Values.pihole.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.pihole.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      volumes:
+        - name: pihole
+        {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ default (include "common.names.fullname" .) .Values.persistence.existingClaim }}
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
+        {{- if .Values.pihole.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.pihole.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}
