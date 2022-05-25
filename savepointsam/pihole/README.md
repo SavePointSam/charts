@@ -1,6 +1,7 @@
 # Pi-hole
 
-[Pi-hole®](https://pi-hole.net/) is a DNS sinkhole that protects your devices from unwanted content without installing any client-side software.
+[Pi-hole®](https://pi-hole.net/) is a DNS sinkhole that protects your devices
+from unwanted content without installing any client-side software.
 
 ## TL;DR
 
@@ -254,13 +255,13 @@ Specify each parameter using the `--set key=value[,key=value]` argument to
 
 ```console
 helm install my-release \
-  --set port=5335 \
-  --set numThreads=2 \
+  --set pihole.webui.admin.email="myemail@provider.com" \
+  --set pihole.dnssec.enabled=true \
   savepointsam/pihole
 ```
 
-The above command sets the unbound port to `5335` and the number of threads
-unbound uses to `2`.
+The above command sets the Pi-hole web UI admin email as `myemail@provider.com`
+and enables DNSSEC.
 
 Alternatively, a YAML file that specifies the values for the above parameters
 can be provided while installing the chart. For example,
