@@ -1,7 +1,0 @@
-pihole:
-  webui:
-    admin:
-      email: "savepointsam@gmail.com"
-
-service:
-  type: LoadBalancer
