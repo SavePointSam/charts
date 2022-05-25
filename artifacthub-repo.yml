@@ -1,0 +1,7 @@
+# Artifact Hub repository metadata file
+#
+
+repositoryID: 9da3924a-b8e6-4601-a029-79449306641f
+owners: # (optional, used to claim repository ownership)
+  - name: Sam Horton
+    email: savepointsam@gmail.com
