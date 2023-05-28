@@ -63,6 +63,6 @@ Useful Helm Client Commands:
 
 ## Available Charts
 
-Charts contained in this repo can by found [here](./savepointsam). Charts can
+Charts contained in this repo can by found [here](https://github.com/SavePointSam/charts/tree/main/savepointsam). Charts can
 also be browsed on
 [Artifact Hub](https://artifacthub.io/packages/search?repo=savepointsam).

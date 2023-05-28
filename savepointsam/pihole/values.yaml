@@ -152,6 +152,7 @@ pihole:
   ## Pi-hole advanced configuration
   ## ref: https://github.com/pi-hole/docker-pi-hole#advanced-variables
   ## @param pihole.advanced.webPort This will break the 'webpage blocked' functionality of Pi-hole however it may help advanced setups. This guide explains how to restore webpage blocked functionality using a linux router DNAT rule: https://discourse.pi-hole.net/t/alternative-synology-installation-method/5454?u=diginc
+  ## @param pihole.advanced.webBindAddress Lighttpd's bind address. If left unset lighttpd will bind to every interface, except when running in host networking mode where it will use FTLCONF_LOCAL_IPV4 instead.
   ## @param pihole.advanced.skipGravityOnBoot Use this option to skip updating the Gravity Database when booting up the container
   ## @param pihole.advanced.corsHosts List of domains/subdomains on which CORS is allowed. Wildcards are not supported
   ## @param pihole.advanced.customCacheSize Set the cache size for dnsmasq. When pihole.dnssec.enabled is "true", then this setting is ignored
@@ -160,6 +161,7 @@ pihole:
   ##
   advanced:
     webPort: ""
+    webBindAddress: ""
     skipGravityOnBoot: false
     corsHosts: []
     customCacheSize: 10000
@@ -211,7 +213,7 @@ pihole:
   image:
     registry: docker.io
     repository: pihole/pihole
-    tag: "2022.05"
+    tag: "2023.05.0"
     ## Specify a imagePullPolicy
     ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
     ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
