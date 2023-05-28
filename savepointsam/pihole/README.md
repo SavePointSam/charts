@@ -1,6 +1,7 @@
 # Pi-hole
 
-[Pi-hole®](https://pi-hole.net/) is a DNS sinkhole that protects your devices from unwanted content without installing any client-side software.
+[Pi-hole®](https://pi-hole.net/) is a DNS sinkhole that protects your devices
+from unwanted content without installing any client-side software.
 
 ## TL;DR
 
@@ -101,6 +102,8 @@ deletes the release.
 | Name                                | Description                                                                                                                                                                                                                                                                                 | Value       |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
 | `pihole.advanced.webPort`           | This will break the 'webpage blocked' functionality of Pi-hole however it may help advanced setups. This guide explains how to restore webpage blocked functionality using a linux router DNAT rule: https://discourse.pi-hole.net/t/alternative-synology-installation-method/5454?u=diginc | `""`        |
+
+| `pihole.advanced.webBindAddress`    | Lighttpd's bind address. If left unset lighttpd will bind to every interface, except when running in host networking mode where it will use `FTLCONF_LOCAL_IPV4` instead. | `""`        |
 | `pihole.advanced.skipGravityOnBoot` | Use this option to skip updating the Gravity Database when booting up the container                                                                                                                                                                                                         | `false`     |
 | `pihole.advanced.corsHosts`         | List of domains/subdomains on which CORS is allowed. Wildcards are not supported                                                                                                                                                                                                            | `[]`        |
 | `pihole.advanced.customCacheSize`   | Set the cache size for dnsmasq. When pihole.dnssec.enabled is "true", then this setting is ignored                                                                                                                                                                                          | `10000`     |
@@ -254,13 +257,13 @@ Specify each parameter using the `--set key=value[,key=value]` argument to
 
 ```console
 helm install my-release \
-  --set port=5335 \
-  --set numThreads=2 \
+  --set pihole.webui.admin.email="myemail@provider.com" \
+  --set pihole.dnssec.enabled=true \
   savepointsam/pihole
 ```
 
-The above command sets the unbound port to `5335` and the number of threads
-unbound uses to `2`.
+The above command sets the Pi-hole web UI admin email as `myemail@provider.com`
+and enables DNSSEC.
 
 Alternatively, a YAML file that specifies the values for the above parameters
 can be provided while installing the chart. For example,
