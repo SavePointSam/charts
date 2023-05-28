@@ -88,9 +88,15 @@ spec:
           args: {{- include "common.tplvalues.render" (dict "value" .Values.pihole.args "context" $) | nindent 12 }}
           {{- end }}
           env:
-            {{- /* GENERAL */}}
+            {{- /* Recommended Variables */}}
             - name: TZ
               value: {{ .Values.pihole.timezone | quote }}
+            - name: WEBPASSWORD_FILE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "pihole.secrets.webui.password.name" . }}
+                  key: webpassword
+            {{- /* Optional Variables */}}
             - name: PIHOLE_DNS_
               value: {{ join ";" .Values.pihole.upstream | quote }}
             - name: DNSSEC
@@ -104,13 +110,7 @@ spec:
             {{- end }}
             - name: DNS_FQDN_REQUIRED
               value: {{ .Values.pihole.requireFqdn | quote }}
-            - name: VIRTUAL_HOST
-              value: {{ .Values.pihole.virtualHost | quote }}
-            - name: IPv6
-              value: {{ .Values.pihole.ipv6Support | quote }}
-            - name: TEMPERATUREUNIT
-              value: {{ .Values.pihole.temperatureUnit }}
-            {{- /* REVERSE SERVER */}}
+            {{- /* Optional - Reverse Server */}}
             - name: REV_SERVER
               value: {{ .Values.pihole.reverseServer.enabled | quote }}
             {{- if .Values.pihole.reverseServer.enabled }}
@@ -121,8 +121,7 @@ spec:
             - name: REV_SERVER_CIDR
               value: {{ .Values.pihole.reverseServer.cidr | quote }}
             {{- end }}
-            {{- /* DHCP SERVER */}}
-            {{- /* TODO: support DHCP */}}
+            {{- /* Optional - DHCP Server */}}
             {{- /*
             - name: DHCP_ACTIVE
               value: {{ .Values.pihole.dhcp.enabled }}
@@ -143,9 +142,12 @@ spec:
               value: {{ .Values.pihole.dhcp.rapidCommit }}
             {{- end }}
             */}}
-            {{- /* WEB UI */}}
-            - name: ADMIN_EMAIL
-              value: {{ .Values.pihole.webui.admin.email | quote }}
+            - name: VIRTUAL_HOST
+              value: {{ .Values.pihole.virtualHost | quote }}
+            - name: IPv6
+              value: {{ .Values.pihole.ipv6Support | quote }}
+            - name: TEMPERATUREUNIT
+              value: {{ .Values.pihole.temperatureUnit }}
             {{- if .Values.pihole.webui.boxedLayout }}
             - name: WEBUIBOXEDLAYOUT
               value: boxed
@@ -157,15 +159,14 @@ spec:
               value: {{ .Values.pihole.webui.queryLogging | quote }}
             - name: WEBTHEME
               value: {{ .Values.pihole.webui.theme }}
-            - name: WEBPASSWORD_FILE
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "pihole.secrets.webui.password.name" . }}
-                  key: webpassword
-            {{- /* ADVANCED */}}
+            {{- /* Advanced Variables */}}
             {{- if .Values.pihole.advanced.webPort | quote }}
             - name: WEB_PORT
               value: {{ .Values.pihole.advanced.webPort | quote }}
+            {{- end }}
+            {{- if .Values.pihole.advanced.webBindAddress | quote }}
+            - name: WEB_BIND_ADDR
+              value: {{ .Values.pihole.advanced.webBindAddress | quote }}
             {{- end }}
             {{- if .Values.pihole.advanced.skipGravityOnBoot }}
             - name: SKIPGRAVITYONBOOT
@@ -187,7 +188,7 @@ spec:
             - name: "FTLCONF_{{ $key }}"
               value: {{ $value | quote }}
             {{- end }}
-            {{- /* EXPERIMENTAL */}}
+            {{- /* Experimental Variables */}}
             {{- if .Values.pihole.experimental.dnsmasqUser }}
             - name: DNSMASQ_USER
               value: {{ .Values.pihole.experimental.dnsmasqUser }}
@@ -212,7 +213,10 @@ spec:
             - name: WEBLOGS_STDOUT
               value: 1
             {{- end }}
-            {{- /* EXTRA */}}
+            {{- /* Deprecated Variables */}}
+            - name: ADMIN_EMAIL
+              value: {{ .Values.pihole.webui.admin.email | quote }}
+            {{- /* Extra Variables */}}
             {{- if .Values.pihole.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.pihole.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}
