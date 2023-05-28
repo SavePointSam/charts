@@ -2,6 +2,36 @@ apiVersion: v1
 entries:
   pihole:
   - apiVersion: v2
+    appVersion: 2023.05.0
+    created: "2023-05-28T18:49:53.497329934Z"
+    dependencies:
+    - name: common
+      repository: https://charts.bitnami.com/bitnami
+      version: 1.x.x
+    description: A Helm chart to deploy pi-hole on Kubernetes
+    digest: 165883c4a10bede0e4a73174d81e707de8e7b725197c6e98c3abea00e624cebe
+    home: https://pi-hole.net/
+    icon: https://upload.wikimedia.org/wikipedia/commons/0/00/Pi-hole_Logo.png
+    keywords:
+    - pi
+    - pihole
+    - raspberrypi
+    - dns
+    - adblock
+    maintainers:
+    - email: savepointsam@gmail.com
+      name: Sam Horton
+      url: https://github.com/SavePointSam
+    name: pihole
+    sources:
+    - https://github.com/SavePointSam/charts/savepointsam/pihole
+    - https://github.com/pi-hole
+    - https://github.com/pi-hole/docker-pi-hole
+    type: application
+    urls:
+    - https://github.com/SavePointSam/charts/releases/download/pihole-0.2.0/pihole-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
     appVersion: "2022.05"
     created: "2022-05-25T11:28:47.228544882Z"
     dependencies:
@@ -61,4 +91,4 @@ entries:
     urls:
     - https://github.com/SavePointSam/charts/releases/download/unbound-1.0.0/unbound-1.0.0.tgz
     version: 1.0.0
-generated: "2022-05-25T11:28:47.370007879Z"
+generated: "2023-05-28T18:49:53.497344534Z"
